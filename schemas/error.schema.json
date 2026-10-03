@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ErrorResponse",
+  "description": "The body of a 400, 403, or 404 response. FastAPI builds it from HTTPException(detail=...).",
+  "type": "object",
+  "required": [
+    "detail"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "detail": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

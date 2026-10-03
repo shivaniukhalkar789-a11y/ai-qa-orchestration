@@ -149,17 +149,101 @@ curl -i http://127.0.0.1:8000/employees/me
 
 ## Running the tests
 
-With the virtual environment active (same command on macOS/Linux and
-Windows PowerShell):
+The tests do **not** need the API server running. They call the app
+directly through FastAPI's `TestClient`. Activate `.venv` first (see the
+setup section above), and run every command from the project root (the
+folder that contains `tests/`, `app/`, and `pyproject.toml`).
 
-```bash
+### Windows PowerShell
+
+```powershell
+cd D:\ShivaniDoc\QA\ai-qa-orchestration
+.venv\Scripts\Activate.ps1
+
+# Day 1 only (7 tests)
+python -m pytest -v tests/test_employees.py tests/test_service_status.py tests/test_tickets.py
+
+# Day 2 only (31 tests)
+python -m pytest -v tests/day2
+
+# Full suite (38 tests)
 python -m pytest -v
 ```
 
-This runs the baseline suite in `tests/`: one test per endpoint plus a
-dedicated ticket-ownership test. It is intentionally small — Day 1 and
-Day 2 exercises ask you to extend it (missing header, unknown employee,
-missing ticket, and more).
+### macOS (bash/zsh)
+
+```bash
+cd /path/to/ai-qa-orchestration
+source .venv/bin/activate
+
+# Day 1 only (7 tests)
+python -m pytest -v tests/test_employees.py tests/test_service_status.py tests/test_tickets.py
+
+# Day 2 only (31 tests)
+python -m pytest -v tests/day2
+
+# Full suite (38 tests)
+python -m pytest -v
+```
+
+**Expected:** `7 passed`, `31 passed`, and `38 passed` respectively, with
+a warning line about `httpx` from Starlette. That warning is harmless.
+
+If you see `ERROR: file or directory not found: tests/day2`, your terminal
+is not in the project folder. Run the `cd` line first.
+
+### Fault demonstrations (TEST-ONLY)
+
+Day 2 includes three deliberate faults. They are **off by default**. A
+normal run never has them. A fault is only switched on by typing the
+`--day2-fault=...` option, and only with the `tests/day2` path. Pytest
+rejects the option for any other path.
+
+What the faults do, and where:
+
+- `ownership`: makes the ownership check always say "yes" (`app/rules.py`).
+- `missing-status` and `wrong-status-type`: break the VPN status data in
+  memory (`app/data.py`). The file on disk is never changed.
+
+Each change is undone automatically after each test.
+
+```powershell
+python -m pytest -v tests/day2 --day2-fault=ownership
+python -m pytest -v tests/day2 --day2-fault=missing-status
+python -m pytest -v tests/day2 --day2-fault=wrong-status-type
+```
+
+**Expected failures (these are the lesson, not a bug):**
+
+| Fault | Result | Which tests fail |
+| --- | --- | --- |
+| `ownership` | `7 failed, 24 passed` | Every cross-employee check (Day 2 topics 2, 3, 4 and 5) |
+| `missing-status` | `1 failed, 30 passed` | `test_service_status_matches_schema` |
+| `wrong-status-type` | `1 failed, 30 passed` | `test_service_status_matches_schema` |
+
+After a fault run, run the plain Day 2 or full command again. It should be
+back to all green. Nothing is saved between runs.
+
+### Report generation
+
+Reports are written to `reports/`. That folder is in `.gitignore`, so
+reports stay on your computer and are not committed.
+
+```powershell
+python -m pytest -q --junitxml=reports\junit.xml
+python -m pytest -q --html=reports\report.html --self-contained-html --json-report --json-report-file=reports\report.json
+```
+
+macOS: use forward slashes, for example `reports/junit.xml`.
+
+These plugins come from the `dev` extra in `pyproject.toml`
+(`pytest-html`, `pytest-json-report`), so `python -m pip install -e ".[dev]"`
+installs them.
+
+**Before you share a report, read it.** Reports can include your
+computer's name, folder paths, Windows version, Python version, and
+environment variables such as `JAVA_HOME`. Do not paste them into chat or
+commit them. Share the summary counts instead.
 
 ## Business rules
 

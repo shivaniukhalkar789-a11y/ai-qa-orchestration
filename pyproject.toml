@@ -17,6 +17,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0,<9.0",
+    # Report generation: HTML and JSON reports (see README "Report generation").
+    "pytest-html>=4.2,<5.0",
+    "pytest-json-report>=1.5,<2.0",
 ]
 
 [tool.setuptools.packages.find]
